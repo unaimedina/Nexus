@@ -62,7 +62,3 @@ powershell -ExecutionPolicy Bypass -File .\HelpdeskGUI.ps1
 ## Next features
 - [ ] Event Viewer analysis
 - [ ] Windows Update troubleshooting
-
-## License
-
-This project is licensed under the MIT License.
