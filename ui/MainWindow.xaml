@@ -1,9 +1,23 @@
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="NEXUS DIAGNOSTICS" Height="660" Width="1020"
-        Background="#0a0a0a" WindowStartupLocation="CenterScreen"
+        MinHeight="600" MinWidth="900"
+        WindowState="Maximized" WindowStartupLocation="CenterScreen"
+        Background="#0a0a0a"
         FontFamily="Poppins, Inter, Segoe UI">
     <Window.Resources>
+        <!-- Lucide-style icon geometries (24x24, stroke) -->
+        <Geometry x:Key="IconGlobe">M2,12 A10,10 0 1 1 22,12 A10,10 0 1 1 2,12 M12,2 A14.5,14.5 0 0 0 12,22 A14.5,14.5 0 0 0 12,2 M2,12 H22</Geometry>
+        <Geometry x:Key="IconDrive">M22,12 H2 M5.45,5.11 2,12 v6 a2,2 0 0 0 2,2 h16 a2,2 0 0 0 2,-2 v-6 l-3.45,-6.89 A2,2 0 0 0 16.76,4 H7.24 a2,2 0 0 0 -1.79,1.11 z M6,16 h0.01 M10,16 h0.01</Geometry>
+        <Geometry x:Key="IconShield">M20,13 c0,5 -3.5,7.5 -7.66,8.95 a1,1 0 0 1 -0.67,-0.01 C7.5,20.5 4,18 4,13 V6 a1,1 0 0 1 1,-1 c2,0 4.5,-1.2 6.24,-2.72 a1.17,1.17 0 0 1 1.52,0 C14.51,3.81 17,5 19,5 a1,1 0 0 1 1,1 z M9,12 11,14 15,10</Geometry>
+        <Geometry x:Key="IconTrash">M3,6 H21 M19,6 V20 c0,1 -1,2 -2,2 H7 c-1,0 -2,-1 -2,-2 V6 M8,6 V4 c0,-1 1,-2 2,-2 h4 c1,0 2,1 2,2 v2 M10,11 V17 M14,11 V17</Geometry>
+        <Geometry x:Key="IconScroll">M15,12 H10 M15,8 H10 M19,17 V5 a2,2 0 0 0 -2,-2 H4 M8,21 h12 a2,2 0 0 0 2,-2 v-1 a1,1 0 0 0 -1,-1 H11 a1,1 0 0 0 -1,1 v1 a2,2 0 1 1 -4,0 V5 a2,2 0 1 0 -4,0 v2 a1,1 0 0 0 1,1 h3</Geometry>
+        <Geometry x:Key="IconWrench">M14.7,6.3 a1,1 0 0 0 0,1.4 l1.6,1.6 a1,1 0 0 0 1.4,0 l3.77,-3.77 a6,6 0 0 1 -7.94,7.94 l-6.91,6.91 a2.12,2.12 0 0 1 -3,-3 l6.91,-6.91 a6,6 0 0 1 7.94,-7.94 l-3.76,3.76 z</Geometry>
+        <Geometry x:Key="IconInfo">M2,12 A10,10 0 1 1 22,12 A10,10 0 1 1 2,12 M12,16 V12 M12,8 h0.01</Geometry>
+        <Geometry x:Key="IconRefresh">M3,12 a9,9 0 0 1 9,-9 9.75,9.75 0 0 1 6.74,2.74 L21,8 M21,3 v5 h-5 M21,12 a9,9 0 0 1 -9,9 9.75,9.75 0 0 1 -6.74,-2.74 L3,16 M3,21 v-5 h5</Geometry>
+        <Geometry x:Key="IconCloud">M17.5,19 H9 a7,7 0 1 1 6.71,-9 h1.79 a4.5,4.5 0 1 1 0,9 Z</Geometry>
+        <Geometry x:Key="IconEraser">M7,21 2.7,16.7 c-1,-1 -1,-2.5 0,-3.4 l9.6,-9.6 c1,-1 2.5,-1 3.4,0 l5.6,5.6 c1,1 1,2.5 0,3.4 L13,21 M22,21 H7 M5,11 14,20</Geometry>
+
         <Style x:Key="NavButton" TargetType="Button">
             <Setter Property="Background" Value="#141414"/>
             <Setter Property="Foreground" Value="#fafafa"/>
@@ -18,7 +32,64 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4" Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                            <StackPanel Orientation="Horizontal">
+                                <Viewbox Width="17" Height="17" VerticalAlignment="Center" Margin="0,0,12,0">
+                                    <Path Data="{TemplateBinding Tag}" Stroke="{TemplateBinding Foreground}" StrokeThickness="2"
+                                          StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                          Width="24" Height="24" Stretch="None"/>
+                                </Viewbox>
+                                <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#1b1b1b"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#e4ff3a"/>
+                                <Setter Property="Foreground" Value="#e4ff3a"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#202200"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#e4ff3a"/>
+                                <Setter Property="Foreground" Value="#e4ff3a"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="NavTile" TargetType="Button">
+            <Setter Property="Background" Value="#141414"/>
+            <Setter Property="Foreground" Value="#fafafa"/>
+            <Setter Property="BorderBrush" Value="#1f1f1f"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Margin" Value="4"/>
+            <Setter Property="Height" Value="106"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="8,12">
+                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Viewbox Width="25" Height="25" HorizontalAlignment="Center" Margin="0,0,0,8">
+                                    <Path Data="{TemplateBinding Tag}" Stroke="{TemplateBinding Foreground}" StrokeThickness="2"
+                                          StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                          Width="24" Height="24" Stretch="None"/>
+                                </Viewbox>
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <ContentPresenter.Resources>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextWrapping" Value="Wrap"/>
+                                            <Setter Property="TextAlignment" Value="Center"/>
+                                            <Setter Property="LineHeight" Value="15"/>
+                                        </Style>
+                                    </ContentPresenter.Resources>
+                                </ContentPresenter>
+                            </StackPanel>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -123,7 +194,7 @@
     </Window.Resources>
     <Grid Margin="32">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="280"/>
+            <ColumnDefinition Width="360"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
@@ -131,7 +202,7 @@
             <DockPanel>
                 <StackPanel DockPanel.Dock="Bottom">
                     <Border Height="1" Background="#1f1f1f" Margin="0,18,0,18"/>
-                    <Button x:Name="btnClear" Style="{StaticResource NavButton}" Content="&gt;  Purge terminal" Foreground="#a3a3a3"/>
+                    <Button x:Name="btnClear" Style="{StaticResource NavButton}" Tag="{StaticResource IconEraser}" Content="Purge terminal" Foreground="#a3a3a3"/>
                 </StackPanel>
 
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,4,0">
@@ -140,22 +211,26 @@
                             <Image x:Name="imgLogo" Width="34" Height="34" VerticalAlignment="Center" Margin="0,2,0,0" RenderOptions.BitmapScalingMode="HighQuality"/>
                             <TextBlock Text="NEXUS" Foreground="#fafafa" FontSize="24" FontWeight="Bold" VerticalAlignment="Center"/>
                         </StackPanel>
-                        <TextBlock Text="Tech Tools Suite" Foreground="#525252" FontFamily="JetBrains Mono, Consolas" FontSize="11" Margin="8,0,0,22"/>
+                        <TextBlock Text="Tech Tools Suite" Foreground="#525252" FontFamily="JetBrains Mono, Consolas" FontSize="11" Margin="8,0,0,14"/>
 
-                        <Border Height="1" Background="#1f1f1f" Margin="0,0,0,18"/>
+                        <Border Height="1" Background="#1f1f1f" Margin="0,0,0,12"/>
 
-                        <TextBlock x:Name="txtAdminStatus" Text="auth: checking" Foreground="#a3a3a3" FontFamily="JetBrains Mono, Consolas" FontSize="11" Margin="0,0,0,12"/>
+                        <TextBlock x:Name="txtAdminStatus" Text="Auth: checking" Foreground="#a3a3a3" FontFamily="JetBrains Mono, Consolas" FontSize="11" Margin="0,0,0,10"/>
 
-                        <Button x:Name="btnNetworkDiag" Style="{StaticResource NavButton}" Content="&gt;  Network diagnostics" />
-                        <Button x:Name="btnDiskCheck" Style="{StaticResource NavButton}" Content="&gt;  Disk usage analysis" />
-                        <Button x:Name="btnImageVerify" Style="{StaticResource NavButton}" Content="&gt;  Verify system image" />
-                        <Button x:Name="btnAppSolutions" Style="{StaticResource NavButton}" Content="&gt;  Application solutions" />
+                        <UniformGrid Columns="3" Margin="-4,0">
+                            <Button x:Name="btnNetworkDiag" Style="{StaticResource NavTile}" Tag="{StaticResource IconGlobe}" Content="Network diagnostics" />
+                            <Button x:Name="btnDiskCheck" Style="{StaticResource NavTile}" Tag="{StaticResource IconDrive}" Content="Disk usage analysis" />
+                            <Button x:Name="btnImageVerify" Style="{StaticResource NavTile}" Tag="{StaticResource IconShield}" Content="Verify system image" />
+                            <Button x:Name="btnCleanTemp" Style="{StaticResource NavTile}" Tag="{StaticResource IconTrash}" Content="Clean temporary files" />
+                            <Button x:Name="btnEventViewer" Style="{StaticResource NavTile}" Tag="{StaticResource IconScroll}" Content="Event Viewer analysis" />
+                            <Button x:Name="btnAppSolutions" Style="{StaticResource NavTile}" Tag="{StaticResource IconWrench}" Content="Application solutions" />
+                        </UniformGrid>
 
                         <StackPanel x:Name="panelOffice" Visibility="Collapsed" Margin="14,2,0,0">
                             <TextBlock Text="Microsoft Office" Foreground="#525252" FontFamily="JetBrains Mono, Consolas" FontSize="10" Margin="2,8,0,0"/>
-                            <Button x:Name="btnOfficeInfo" Style="{StaticResource NavButton}" Content="&gt;  Office install info" FontSize="12" Padding="12,9"/>
-                            <Button x:Name="btnOfficeQuick" Style="{StaticResource NavButton}" Content="&gt;  Quick repair" FontSize="12" Padding="12,9"/>
-                            <Button x:Name="btnOfficeOnline" Style="{StaticResource NavButton}" Content="&gt;  Online repair" FontSize="12" Padding="12,9"/>
+                            <Button x:Name="btnOfficeInfo" Style="{StaticResource NavButton}" Tag="{StaticResource IconInfo}" Content="Office install info" FontSize="12" Padding="12,9"/>
+                            <Button x:Name="btnOfficeQuick" Style="{StaticResource NavButton}" Tag="{StaticResource IconRefresh}" Content="Quick repair" FontSize="12" Padding="12,9"/>
+                            <Button x:Name="btnOfficeOnline" Style="{StaticResource NavButton}" Tag="{StaticResource IconCloud}" Content="Online repair" FontSize="12" Padding="12,9"/>
                         </StackPanel>
                     </StackPanel>
                 </ScrollViewer>

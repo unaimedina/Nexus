@@ -1,11 +1,11 @@
 Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName System.Windows.Forms
 
-$scriptDir  = Split-Path -Parent $MyInvocation.MyCommand.Path
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ScriptsDir = Join-Path $scriptDir "scripts"
-$UiDir      = Join-Path $scriptDir "ui"
+$UiDir = Join-Path $scriptDir "ui"
 
-foreach ($module in "Test-IsAdmin", "DiagScript", "DiskScript", "ImageScript", "OfficeScript") {
+foreach ($module in "Test-IsAdmin", "DiagScript", "DiskScript", "ImageScript", "CleanTempScript", "EventViewerScript", "OfficeScript") {
     $path = Join-Path $ScriptsDir "$module.ps1"
     if (Test-Path $path) { . $path }
 }
@@ -26,17 +26,19 @@ function Import-XamlWindow {
 
 $Form = Import-XamlWindow (Join-Path $UiDir "MainWindow.xaml")
 
-$btnNetworkDiag  = $Form.FindName("btnNetworkDiag")
-$btnDiskCheck    = $Form.FindName("btnDiskCheck")
-$btnImageVerify  = $Form.FindName("btnImageVerify")
+$btnNetworkDiag = $Form.FindName("btnNetworkDiag")
+$btnDiskCheck = $Form.FindName("btnDiskCheck")
+$btnImageVerify = $Form.FindName("btnImageVerify")
+$btnCleanTemp = $Form.FindName("btnCleanTemp")
+$btnEventViewer = $Form.FindName("btnEventViewer")
 $btnAppSolutions = $Form.FindName("btnAppSolutions")
-$btnClear        = $Form.FindName("btnClear")
-$txtOutput       = $Form.FindName("txtOutput")
-$scrollViewer    = $Form.FindName("scrollViewer")
-$txtAdminStatus  = $Form.FindName("txtAdminStatus")
-$panelOffice     = $Form.FindName("panelOffice")
-$btnOfficeInfo   = $Form.FindName("btnOfficeInfo")
-$btnOfficeQuick  = $Form.FindName("btnOfficeQuick")
+$btnClear = $Form.FindName("btnClear")
+$txtOutput = $Form.FindName("txtOutput")
+$scrollViewer = $Form.FindName("scrollViewer")
+$txtAdminStatus = $Form.FindName("txtAdminStatus")
+$panelOffice = $Form.FindName("panelOffice")
+$btnOfficeInfo = $Form.FindName("btnOfficeInfo")
+$btnOfficeQuick = $Form.FindName("btnOfficeQuick")
 $btnOfficeOnline = $Form.FindName("btnOfficeOnline")
 
 $logoPath = Join-Path $scriptDir "assets\logo.png"
@@ -58,7 +60,8 @@ if (Test-Path $iconPath) {
         [System.Windows.Media.Imaging.BitmapCreateOptions]::None,
         [System.Windows.Media.Imaging.BitmapCacheOption]::OnLoad)
     $Form.Icon = ($dec.Frames | Sort-Object { [math]::Abs($_.PixelWidth - 32) } | Select-Object -First 1)
-} elseif ($logoBmp) {
+}
+elseif ($logoBmp) {
     $Form.Icon = $logoBmp
 }
 
@@ -112,16 +115,18 @@ function Write-DiagnosisSummary {
     Write-Console "[!] DIAGNOSIS SUMMARY" "#e4ff3a"
     if ($findings.Count -eq 0) {
         Write-Console "    [OK] No issues detected." "#22c55e"
-    } else {
+    }
+    else {
         foreach ($f in $findings) { Write-Console "    - $($f.Msg)" $f.Color }
     }
 }
 
 if (Test-IsAdmin) {
-    $txtAdminStatus.Text = "auth: root privileges"
+    $txtAdminStatus.Text = "Auth: root privileges"
     $txtAdminStatus.Foreground = (New-Object System.Windows.Media.BrushConverter).ConvertFromString("#22c55e")
-} else {
-    $txtAdminStatus.Text = "auth: standard user"
+}
+else {
+    $txtAdminStatus.Text = "Auth: standard user"
     $txtAdminStatus.Foreground = (New-Object System.Windows.Media.BrushConverter).ConvertFromString("#ef4444")
 }
 
@@ -146,12 +151,14 @@ function Start-DiagTask {
     Write-Console "> Executing $Label..." "#e4ff3a"
 
     $btnNetworkDiag.IsEnabled = $false
-    $btnDiskCheck.IsEnabled   = $false
+    $btnDiskCheck.IsEnabled = $false
     $btnImageVerify.IsEnabled = $false
+    $btnCleanTemp.IsEnabled = $false
+    $btnEventViewer.IsEnabled = $false
 
     $script:diagRs = [runspacefactory]::CreateRunspace()
     $script:diagRs.ApartmentState = "STA"
-    $script:diagRs.ThreadOptions  = "ReuseThread"
+    $script:diagRs.ThreadOptions = "ReuseThread"
     $script:diagRs.Open()
     $script:diagPs = [powershell]::Create()
     $script:diagPs.Runspace = $script:diagRs
@@ -161,25 +168,29 @@ function Start-DiagTask {
     $script:diagTimer = New-Object System.Windows.Threading.DispatcherTimer
     $script:diagTimer.Interval = [TimeSpan]::FromMilliseconds(150)
     $script:diagTimer.Add_Tick({
-        if (-not $script:diagHandle.IsCompleted) { return }
-        $script:diagTimer.Stop()
-        try {
-            $out  = $script:diagPs.EndInvoke($script:diagHandle)
-            $text = ($out | Out-String).Trim()
-            if ([string]::IsNullOrWhiteSpace($text)) { $text = "(no output)" }
-            Write-Console $text "#e5e5e5"
-            Write-DiagnosisSummary $text
-        } catch {
-            Write-Console "ERROR: $($_.Exception.Message)" "#ef4444"
-        } finally {
-            $script:diagPs.Dispose(); $script:diagRs.Close(); $script:diagRs.Dispose()
-            $btnNetworkDiag.IsEnabled = $true
-            $btnDiskCheck.IsEnabled   = $true
-            $btnImageVerify.IsEnabled = $true
-            $script:diagBusy = $false
-            Write-Console "Task completed.`n" "#22c55e"
-        }
-    })
+            if (-not $script:diagHandle.IsCompleted) { return }
+            $script:diagTimer.Stop()
+            try {
+                $out = $script:diagPs.EndInvoke($script:diagHandle)
+                $text = ($out | Out-String).Trim()
+                if ([string]::IsNullOrWhiteSpace($text)) { $text = "(no output)" }
+                Write-Console $text "#e5e5e5"
+                Write-DiagnosisSummary $text
+            }
+            catch {
+                Write-Console "ERROR: $($_.Exception.Message)" "#ef4444"
+            }
+            finally {
+                $script:diagPs.Dispose(); $script:diagRs.Close(); $script:diagRs.Dispose()
+                $btnNetworkDiag.IsEnabled = $true
+                $btnDiskCheck.IsEnabled = $true
+                $btnImageVerify.IsEnabled = $true
+                $btnCleanTemp.IsEnabled = $true
+                $btnEventViewer.IsEnabled = $true
+                $script:diagBusy = $false
+                Write-Console "Task completed.`n" "#22c55e"
+            }
+        })
     $script:diagTimer.Start()
 }
 
@@ -192,7 +203,8 @@ function Update-ImageLine {
             $txtOutput.Inlines.Add($script:imgProgRun)
         }
         $script:imgProgRun.Text = "    $Text`n"
-    } else {
+    }
+    else {
         $script:imgProgRun = $null
         $script:imgLog += "$Text`n"
         if ($Text -match '^\[\+\]') { Write-Console $Text "#e4ff3a" }
@@ -205,8 +217,8 @@ function Read-ImageOutput {
     $len = $script:imgFs.Length
     if ($len -gt $script:imgFs.Position) {
         $count = [int]($len - $script:imgFs.Position)
-        $buf   = New-Object byte[] $count
-        $read  = $script:imgFs.Read($buf, 0, $count)
+        $buf = New-Object byte[] $count
+        $read = $script:imgFs.Read($buf, 0, $count)
         $chunk = New-Object System.Text.StringBuilder
         for ($i = 0; $i -lt $read; $i++) { if ($buf[$i] -ne 0) { [void]$chunk.Append([char]$buf[$i]) } }
         $script:imgBuffer += $chunk.ToString()
@@ -236,18 +248,20 @@ function Start-ImageVerify {
 
     $script:diagBusy = $true
     $btnNetworkDiag.IsEnabled = $false
-    $btnDiskCheck.IsEnabled   = $false
+    $btnDiskCheck.IsEnabled = $false
     $btnImageVerify.IsEnabled = $false
+    $btnCleanTemp.IsEnabled = $false
+    $btnEventViewer.IsEnabled = $false
 
     $script:imgProgRun = $null
-    $script:imgBuffer  = ""
-    $script:imgLog     = ""
-    $script:imgOut     = [System.IO.Path]::GetTempFileName()
+    $script:imgBuffer = ""
+    $script:imgLog = ""
+    $script:imgOut = [System.IO.Path]::GetTempFileName()
 
     $cmd = '/c echo [+] DISM /Online /Cleanup-Image /ScanHealth' +
-           ' & DISM /Online /Cleanup-Image /ScanHealth' +
-           ' & echo. & echo [+] SFC /scannow' +
-           ' & sfc /scannow'
+    ' & DISM /Online /Cleanup-Image /ScanHealth' +
+    ' & echo. & echo [+] SFC /scannow' +
+    ' & sfc /scannow'
     $script:imgProc = Start-Process -FilePath "cmd.exe" -ArgumentList $cmd `
         -WindowStyle Hidden -RedirectStandardOutput $script:imgOut -PassThru
 
@@ -257,51 +271,76 @@ function Start-ImageVerify {
     $script:imgTimer = New-Object System.Windows.Threading.DispatcherTimer
     $script:imgTimer.Interval = [TimeSpan]::FromMilliseconds(250)
     $script:imgTimer.Add_Tick({
-        Read-ImageOutput
-        if ($script:imgProc.HasExited) {
             Read-ImageOutput
-            $tail = $script:imgBuffer.Trim()
-            if ($tail) { Update-ImageLine $tail ($tail -match '%') }
-            $script:imgTimer.Stop()
-            $script:imgFs.Close()
-            Remove-Item $script:imgOut -Force -ErrorAction SilentlyContinue
-            Write-DiagnosisSummary $script:imgLog
-            $btnNetworkDiag.IsEnabled = $true
-            $btnDiskCheck.IsEnabled   = $true
-            $btnImageVerify.IsEnabled = $true
-            $script:diagBusy = $false
-            Write-Console "Task completed.`n" "#22c55e"
-        }
-    })
+            if ($script:imgProc.HasExited) {
+                Read-ImageOutput
+                $tail = $script:imgBuffer.Trim()
+                if ($tail) { Update-ImageLine $tail ($tail -match '%') }
+                $script:imgTimer.Stop()
+                $script:imgFs.Close()
+                Remove-Item $script:imgOut -Force -ErrorAction SilentlyContinue
+                Write-DiagnosisSummary $script:imgLog
+                $btnNetworkDiag.IsEnabled = $true
+                $btnDiskCheck.IsEnabled = $true
+                $btnImageVerify.IsEnabled = $true
+                $btnCleanTemp.IsEnabled = $true
+                $btnEventViewer.IsEnabled = $true
+                $script:diagBusy = $false
+                Write-Console "Task completed.`n" "#22c55e"
+            }
+        })
     $script:imgTimer.Start()
 }
 
 $btnNetworkDiag.Add_Click({ Start-DiagTask (Join-Path $ScriptsDir "DiagScript.ps1") "DiagScript" "Network Diagnostics" })
 $btnDiskCheck.Add_Click({ Start-DiagTask (Join-Path $ScriptsDir "DiskScript.ps1") "DiskScript" "Disk Usage Analysis" })
 $btnImageVerify.Add_Click({ Start-ImageVerify })
+$btnCleanTemp.Add_Click({ Start-DiagTask (Join-Path $ScriptsDir "CleanTempScript.ps1") "CleanTempScript" "Temporary Files Cleanup" })
+$btnEventViewer.Add_Click({ Start-DiagTask (Join-Path $ScriptsDir "EventViewerScript.ps1") "EventViewerScript" "Event Viewer Analysis" })
 
 $btnAppSolutions.Add_Click({
-    if ($panelOffice.Visibility -eq [System.Windows.Visibility]::Visible) {
-        $panelOffice.Visibility = [System.Windows.Visibility]::Collapsed
-    } else {
-        $panelOffice.Visibility = [System.Windows.Visibility]::Visible
-        Write-Console "> Application solutions ready. Select an action." "#e4ff3a"
-    }
-})
+        if ($panelOffice.Visibility -eq [System.Windows.Visibility]::Visible) {
+            $panelOffice.Visibility = [System.Windows.Visibility]::Collapsed
+        }
+        else {
+            $panelOffice.Visibility = [System.Windows.Visibility]::Visible
+            Write-Console "> Application solutions ready. Select an action." "#e4ff3a"
+        }
+    })
 
 $btnOfficeInfo.Add_Click({ Write-Console (Get-OfficeInfo) "#e5e5e5" })
 $btnOfficeQuick.Add_Click({
-    Write-Console "> Launching Office Quick Repair..." "#e4ff3a"
-    Write-Console (Repair-OfficeApps -RepairType QuickRepair) "#e5e5e5"
-})
+        Write-Console "> Launching Office Quick Repair..." "#e4ff3a"
+        Write-Console (Repair-OfficeApps -RepairType QuickRepair) "#e5e5e5"
+    })
 $btnOfficeOnline.Add_Click({
-    Write-Console "> Launching Office Online Repair..." "#e4ff3a"
-    Write-Console (Repair-OfficeApps -RepairType FullRepair) "#e5e5e5"
-})
+        Write-Console "> Launching Office Online Repair..." "#e4ff3a"
+        Write-Console (Repair-OfficeApps -RepairType FullRepair) "#e5e5e5"
+    })
 
 $btnClear.Add_Click({
-    $txtOutput.Inlines.Clear()
-    Write-Console "Console purged.`n" "#525252"
-})
+        $txtOutput.Inlines.Clear()
+        Write-Console "Console purged.`n" "#525252"
+    })
+
+if (-not ([System.Management.Automation.PSTypeName]'NexusFocus').Type) {
+    Add-Type -Namespace '' -Name 'NexusFocus' -MemberDefinition @'
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+public static extern bool SetForegroundWindow(System.IntPtr hWnd);
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+public static extern bool ShowWindow(System.IntPtr hWnd, int nCmdShow);
+'@
+}
+
+$Form.Add_Loaded({
+        $Form.WindowState = [System.Windows.WindowState]::Maximized
+        $Form.Activate()
+        $Form.Topmost = $true
+        $Form.Topmost = $false
+        $helper = New-Object System.Windows.Interop.WindowInteropHelper $Form
+        [void][NexusFocus]::ShowWindow($helper.Handle, 9)   # SW_RESTORE
+        [void][NexusFocus]::SetForegroundWindow($helper.Handle)
+        $Form.Focus()
+    })
 
 $Form.ShowDialog() | Out-Null
