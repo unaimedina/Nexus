@@ -60,5 +60,5 @@ powershell -ExecutionPolicy Bypass -File .\HelpdeskGUI.ps1
 ![NEXUS Interface](./assets/preview.png)
 
 ## Next features
-- [ x ] Event Viewer analysis
+- [x] Event Viewer analysis
 - [ ] Windows Update troubleshooting
