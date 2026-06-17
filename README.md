@@ -32,6 +32,11 @@ After more than 3 years working in technical support, I created this project to 
 - Microsoft Office troubleshooting
 - Common application repair procedures
 
+### System Maintenance
+- Temporary files cleanup (user temp, Windows temp, Prefetch)
+- Event Viewer analysis (recent critical / error events)
+- Windows Update troubleshooting
+
 ## Installation
 
 Clone the repository:
@@ -57,8 +62,4 @@ powershell -ExecutionPolicy Bypass -File .\HelpdeskGUI.ps1
 
 ## Screenshots
 
-![NEXUS Interface](./assets/preview.png)
-
-## Next features
-- [ ] Event Viewer analysis
-- [ ] Windows Update troubleshooting
+_Screenshot to be added._

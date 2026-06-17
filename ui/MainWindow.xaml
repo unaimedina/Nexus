@@ -215,7 +215,7 @@
 
                         <Border Height="1" Background="#1f1f1f" Margin="0,0,0,12"/>
 
-                        <TextBlock x:Name="txtAdminStatus" Text="Auth: checking" Foreground="#a3a3a3" FontFamily="JetBrains Mono, Consolas" FontSize="11" Margin="0,0,0,10"/>
+                        <TextBlock x:Name="txtAdminStatus" Text="checking" Foreground="#a3a3a3" FontFamily="JetBrains Mono, Consolas" FontSize="11" Margin="0,0,0,10"/>
 
                         <UniformGrid Columns="3" Margin="-4,0">
                             <Button x:Name="btnNetworkDiag" Style="{StaticResource NavTile}" Tag="{StaticResource IconGlobe}" Content="Network diagnostics" />
@@ -223,6 +223,7 @@
                             <Button x:Name="btnImageVerify" Style="{StaticResource NavTile}" Tag="{StaticResource IconShield}" Content="Verify system image" />
                             <Button x:Name="btnCleanTemp" Style="{StaticResource NavTile}" Tag="{StaticResource IconTrash}" Content="Clean temporary files" />
                             <Button x:Name="btnEventViewer" Style="{StaticResource NavTile}" Tag="{StaticResource IconScroll}" Content="Event Viewer analysis" />
+                            <Button x:Name="btnWindowsUpdate" Style="{StaticResource NavTile}" Tag="{StaticResource IconRefresh}" Content="Windows Update" />
                             <Button x:Name="btnAppSolutions" Style="{StaticResource NavTile}" Tag="{StaticResource IconWrench}" Content="Application solutions" />
                         </UniformGrid>
 
@@ -245,11 +246,7 @@
                 </Grid.RowDefinitions>
                 <Border Grid.Row="0" Background="#111111" BorderBrush="#1f1f1f" BorderThickness="0,0,0,1" Padding="22,14" CornerRadius="8,8,0,0">
                     <Grid>
-                        <TextBlock Text="~/nexus - diagnostic output" Foreground="#525252" FontFamily="JetBrains Mono, Consolas" FontSize="12" VerticalAlignment="Center"/>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                            <Ellipse Width="8" Height="8" Fill="#22c55e" Margin="0,0,7,0"/>
-                            <TextBlock Text="LIVE" Foreground="#22c55e" FontFamily="JetBrains Mono, Consolas" FontSize="11" FontWeight="Bold"/>
-                        </StackPanel>
+                        <TextBlock Text="Diagnostic output" Foreground="#525252" FontFamily="JetBrains Mono, Consolas" FontSize="12" VerticalAlignment="Center"/>
                     </Grid>
                 </Border>
                 <ScrollViewer Grid.Row="1" x:Name="scrollViewer" VerticalScrollBarVisibility="Auto" Margin="22,18,14,18" Padding="0,0,6,0">

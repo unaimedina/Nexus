@@ -5,7 +5,7 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ScriptsDir = Join-Path $scriptDir "scripts"
 $UiDir = Join-Path $scriptDir "ui"
 
-foreach ($module in "Test-IsAdmin", "DiagScript", "DiskScript", "ImageScript", "CleanTempScript", "EventViewerScript", "OfficeScript") {
+foreach ($module in "Test-IsAdmin", "DiagScript", "DiskScript", "ImageScript", "CleanTempScript", "EventViewerScript", "WindowsUpdateScript", "OfficeScript") {
     $path = Join-Path $ScriptsDir "$module.ps1"
     if (Test-Path $path) { . $path }
 }
@@ -31,6 +31,7 @@ $btnDiskCheck = $Form.FindName("btnDiskCheck")
 $btnImageVerify = $Form.FindName("btnImageVerify")
 $btnCleanTemp = $Form.FindName("btnCleanTemp")
 $btnEventViewer = $Form.FindName("btnEventViewer")
+$btnWindowsUpdate = $Form.FindName("btnWindowsUpdate")
 $btnAppSolutions = $Form.FindName("btnAppSolutions")
 $btnClear = $Form.FindName("btnClear")
 $txtOutput = $Form.FindName("txtOutput")
@@ -104,6 +105,12 @@ function Get-DiagnosisFindings {
     if ($Text -match 'encontr. archivos da.ados|found corrupt files|no pudo reparar|was unable to fix|did find corrupt files') {
         & $add "SFC found corrupted system files." "#ef4444"
     }
+    if ($Text -match '\[(FAIL|WARN)\][^\r\n]*\((wuauserv|bits|cryptsvc)\):') {
+        & $add "Windows Update services are not running normally." "#ef4444"
+    }
+    if ($Text -match 'A reboot is pending to finish updates') {
+        & $add "A reboot is pending to complete Windows updates." "#fbbf24"
+    }
 
     return $findings
 }
@@ -122,12 +129,12 @@ function Write-DiagnosisSummary {
 }
 
 if (Test-IsAdmin) {
-    $txtAdminStatus.Text = "Auth: root privileges"
+    $txtAdminStatus.Text = "root privileges"
     $txtAdminStatus.Foreground = (New-Object System.Windows.Media.BrushConverter).ConvertFromString("#22c55e")
 }
 else {
-    $txtAdminStatus.Text = "Auth: standard user"
-    $txtAdminStatus.Foreground = (New-Object System.Windows.Media.BrushConverter).ConvertFromString("#ef4444")
+    $txtAdminStatus.Text = "standard user"
+    $txtAdminStatus.Foreground = (New-Object System.Windows.Media.BrushConverter).ConvertFromString("#fffb00")
 }
 
 Write-Console "Nexus diagnostic initialized." "#e4ff3a"
@@ -155,6 +162,7 @@ function Start-DiagTask {
     $btnImageVerify.IsEnabled = $false
     $btnCleanTemp.IsEnabled = $false
     $btnEventViewer.IsEnabled = $false
+    $btnWindowsUpdate.IsEnabled = $false
 
     $script:diagRs = [runspacefactory]::CreateRunspace()
     $script:diagRs.ApartmentState = "STA"
@@ -187,6 +195,7 @@ function Start-DiagTask {
                 $btnImageVerify.IsEnabled = $true
                 $btnCleanTemp.IsEnabled = $true
                 $btnEventViewer.IsEnabled = $true
+                $btnWindowsUpdate.IsEnabled = $true
                 $script:diagBusy = $false
                 Write-Console "Task completed.`n" "#22c55e"
             }
@@ -252,6 +261,7 @@ function Start-ImageVerify {
     $btnImageVerify.IsEnabled = $false
     $btnCleanTemp.IsEnabled = $false
     $btnEventViewer.IsEnabled = $false
+    $btnWindowsUpdate.IsEnabled = $false
 
     $script:imgProgRun = $null
     $script:imgBuffer = ""
@@ -285,6 +295,7 @@ function Start-ImageVerify {
                 $btnImageVerify.IsEnabled = $true
                 $btnCleanTemp.IsEnabled = $true
                 $btnEventViewer.IsEnabled = $true
+                $btnWindowsUpdate.IsEnabled = $true
                 $script:diagBusy = $false
                 Write-Console "Task completed.`n" "#22c55e"
             }
@@ -297,6 +308,7 @@ $btnDiskCheck.Add_Click({ Start-DiagTask (Join-Path $ScriptsDir "DiskScript.ps1"
 $btnImageVerify.Add_Click({ Start-ImageVerify })
 $btnCleanTemp.Add_Click({ Start-DiagTask (Join-Path $ScriptsDir "CleanTempScript.ps1") "CleanTempScript" "Temporary Files Cleanup" })
 $btnEventViewer.Add_Click({ Start-DiagTask (Join-Path $ScriptsDir "EventViewerScript.ps1") "EventViewerScript" "Event Viewer Analysis" })
+$btnWindowsUpdate.Add_Click({ Start-DiagTask (Join-Path $ScriptsDir "WindowsUpdateScript.ps1") "WindowsUpdateScript" "Windows Update Troubleshooting" })
 
 $btnAppSolutions.Add_Click({
         if ($panelOffice.Visibility -eq [System.Windows.Visibility]::Visible) {
