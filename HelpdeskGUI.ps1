@@ -5,7 +5,7 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ScriptsDir = Join-Path $scriptDir "scripts"
 $UiDir = Join-Path $scriptDir "ui"
 
-foreach ($module in "Test-IsAdmin", "DiagScript", "DiskScript", "ImageScript", "CleanTempScript", "EventViewerScript", "WindowsUpdateScript", "OfficeScript") {
+foreach ($module in "Test-IsAdmin", "DiagScript", "DiskScript", "CleanTempScript", "EventViewerScript", "WindowsUpdateScript", "OfficeScript") {
     $path = Join-Path $ScriptsDir "$module.ps1"
     if (Test-Path $path) { . $path }
 }
